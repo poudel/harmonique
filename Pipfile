@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"markdown2" = "*"
+"jinja2" = "*"
+rcssmin = "*"
+htmlmin = "*"
+python-frontmatter = "*"
+pyyaml = "*"
+
+[dev-packages]
+black = "*"
+pylint = "*"
+ipython = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.7"

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="head">
+        <h1>{{ config.site_title }}</h1>
+        <div class="preamble">
+            {{ config.site_description }}
+        </div>
+    </div>
+    <div class="content">
+        <ul class="toc">
+            {% for item in object_list %}
+                <li>
+                    <span class="mg">{{ item.date }}</span>
+                    <a href="{{ item.url }}">{{ item.title }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

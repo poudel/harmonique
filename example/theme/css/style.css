@@ -1,0 +1,29 @@
+body {color: #333333; font-size: 14px; font-family: sans-serif}
+
+h1 {font-size: 18px; margin: 0px; color: #000000;}
+h2 {font-size: 16px;}
+h3 {font-size: 15px;}
+h4 {font-size: 14px;}
+h5 {font-size: 13px;}
+
+.container {max-width: 600px; margin: auto;}
+
+a:link, a:visited {color: #0822e1; text-decoration: none;}
+a:hover, a:active {color: #06a8e7;}
+
+.hidden {visibility: hidden;}
+
+.toc {list-style: none; padding-left: 0;}
+.toc li {margin-bottom: 10px;}
+.toc .mg {color: #7a7777;}
+
+.back-button {margin-top: 3px;}
+.head {border-bottom: solid 1px #efefef; padding-bottom: 3px;}
+.preamble {font-size: 11px; color: #595555; padding-bottom: 1px;}
+
+.footer {border-top: solid 1px #efefef; padding: 10px 0;}
+
+.pd {margin: 5px 0 10px 0;}
+.psub {margin-bottom: 5px; font-size: 13px; color: grey;}
+
+p code {background-color: #f6f6f6 !important;}

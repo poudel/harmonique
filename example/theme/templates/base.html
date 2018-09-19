@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title>{% block page_title %}{{ config.site_title }}{% endblock %}</title>
+      {% if theme.css %}<style>{{ theme.css }}</style>{% endif %}
+    </head>
+    <body>
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+            <div class="footer">Since 2018</div>
+        </div>
+    </body>
+</html>
