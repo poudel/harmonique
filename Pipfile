@@ -10,6 +10,7 @@ rcssmin = "*"
 htmlmin = "*"
 python-frontmatter = "*"
 pyyaml = "*"
+harmonica = {editable = true, path = "."}
 
 [dev-packages]
 black = "*"
