@@ -7,7 +7,7 @@ A sad little static blog generator. Nothing fancy.
 Run:
 
 ```
-pip install harmonica
+pip install harmonique
 ```
 
 ## Example

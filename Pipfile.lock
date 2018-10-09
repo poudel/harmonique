@@ -16,7 +16,7 @@
         ]
     },
     "default": {
-        "harmonica": {
+        "harmonique": {
             "editable": true,
             "path": "."
         },

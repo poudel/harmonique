@@ -13,15 +13,15 @@ def get_deps():
 
 
 setup(
-    name="harmonica",
+    name="harmonique",
     version="0.0.1",
     description="a sad little personal static blog generator",
     long_description=long_description,
     author="Keshab Paudel",
     author_email="self@keshab.net",
-    url="http://github.com/poudel/harmonica",
+    url="http://github.com/poudel/harmonique",
     py_modules=["simple_config"],
-    entry_points={"console_scripts": ["harmonica=harmonica:main"]},
+    entry_points={"console_scripts": ["harmonique=harmonique:main"]},
     install_requires=get_deps(),
     license="MIT",
     keywords="static-site blog markdown python",

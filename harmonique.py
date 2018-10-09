@@ -15,7 +15,7 @@ from rcssmin import cssmin
 class Config:
     """The config class"""
 
-    def __init__(self, working_dir, config_file="harmonica.yml"):
+    def __init__(self, working_dir, config_file="harmonique.yml"):
         self.working_dir = working_dir
         self.config = {
             "source_path": "source",
@@ -195,12 +195,13 @@ def get_theme(config):
     }
 
 
-def build_site_index(config, theme, toc):
+def build_site_index(config, theme, toc, build_mode):
     context = {
         "object_list": toc,
         "is_index": True,
         "theme": theme,
         "config": config,
+        "build_mode": build_mode,
     }
     index_path = os.path.join(config.output_path, "index.html")
     with open(index_path, "w") as fi:
@@ -215,7 +216,7 @@ def get_toc(config, published, unpublished):
         toc = {}
 
     for doc in unpublished:
-        toc.pop(doc["input_file_name"])
+        toc.pop(doc["input_file_name"], None)
 
     for doc in published:
         url = os.path.split(doc["output_dir"])[-1] + "/"
@@ -223,6 +224,7 @@ def get_toc(config, published, unpublished):
         toc[doc["input_file_name"]] = {
             "title": doc["title"],
             "date": doc["date"].isoformat(),
+            "draft": doc["draft"],
             "url": url,
         }
 
@@ -231,12 +233,17 @@ def get_toc(config, published, unpublished):
     return toc
 
 
-def build_site_pages(config, docs, theme):
+def build_content(config, docs, theme, build_mode):
     published = []
     unpublished = []
 
     for doc in docs:
-        context = {"theme": theme, "doc": doc, "config": config}
+        context = {
+            "theme": theme,
+            "doc": doc,
+            "config": config,
+            "build_mode": build_mode,
+        }
         doc["page"] = htmlmin.minify(theme["detail_template"].render(context))
 
         if doc["draft"]:
@@ -248,7 +255,7 @@ def build_site_pages(config, docs, theme):
     return published, unpublished
 
 
-def build_site(config):
+def build_site(config, build_mode):
     file_names = find_input_file_names(config)
     io_path_map = get_io_path_map(config, file_names)
 
@@ -262,9 +269,9 @@ def build_site(config):
 
     docs, skipped = get_parsed_docs(config, path_map)
     theme = get_theme(config)
-    published, unpublished = build_site_pages(config, docs, theme)
+    published, unpublished = build_content(config, docs, theme, build_mode)
     toc = get_toc(config, published, unpublished).values()
-    build_site_index(config, theme, toc)
+    build_site_index(config, theme, toc, build_mode)
 
     return {
         "published": published,
@@ -273,9 +280,23 @@ def build_site(config):
     }
 
 
+def watch_and_build(config):
+    pass
+
+
 def main():
+    if len(sys.argv) > 1:
+        build_mode = sys.argv[1]
+    else:
+        build_mode = "production"
+
+    if build_mode not in ["development", "production"]:
+        print(f"Invalid build mode {build_mode}")
+        sys.exit(1)
+    print(f"Starting build in {build_mode}")
+
     config = Config(os.getcwd())
-    report = build_site(config)
+    report = build_site(config, build_mode)
 
     if not report:
         print("Nothing to build...")
