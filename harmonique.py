@@ -6,6 +6,9 @@ import logging
 import shutil
 import json
 import urllib
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, test as test_http_server
+
 import htmlmin
 import frontmatter
 import yaml
@@ -26,6 +29,8 @@ class Config:
             "output_path": "output",
             "theme_path": "theme",
             "toc_path": "toc.json",
+            "server_port": 8888,
+            "server_bind": "127.0.0.1",
             "markdown2_extras": [
                 "code-friendly",
                 "fenced-code-blocks",
@@ -287,6 +292,17 @@ def build_site(config, build_mode, toc=None):
     }
 
 
+def run_http_server(config):
+    handler_class = partial(
+        SimpleHTTPRequestHandler, directory=config.output_path
+    )
+    test_http_server(
+        HandlerClass=handler_class,
+        port=config.server_port,
+        bind=config.server_bind,
+    )
+
+
 def do_first_build(config, build_mode):
     report = build_site(config, build_mode)
 
@@ -309,14 +325,11 @@ def watch_and_build(config, build_mode):
 
     event_handler = EventHandler()
     observer = Observer()
-    observer.schedule(event_handler, config.source_path, recursive=True)
+    observer.schedule(event_handler, config.source_path)
     observer.schedule(event_handler, config.theme_path, recursive=True)
     observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
+    run_http_server(config)
+    observer.stop()
     observer.join()
 
 
