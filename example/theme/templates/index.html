@@ -12,7 +12,7 @@
             {% for item in object_list %}
                 <li>
                     <span class="mg">{{ item.date }}</span>
-                    <a href="{{ item.url }}">{% if build_mode == "development" and item.draft %}[DRAFT]{% endif %} {{ item.title }}</a>
+                    <a href="{{ item.url }}">{% if build_mode == "dev" and item.draft %}[DRAFT]{% endif %} {{ item.title }}</a>
                 </li>
             {% endfor %}
         </ul>

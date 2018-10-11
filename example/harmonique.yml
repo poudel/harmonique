@@ -1,3 +1,7 @@
 site_title: harmonique
 site_description: small personal blog generator
 site_url: http://example.com/
+footer:
+  github: example
+  linkedin: example
+  since: Since 2017

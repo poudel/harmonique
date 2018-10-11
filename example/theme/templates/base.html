@@ -10,7 +10,20 @@
         <div class="container">
             {% block content %}
             {% endblock %}
-            <div class="footer">Since 2018</div>
+            <div class="footer">
+                <a href="{{ config.site_url }}">Home</a>
+                {% if config.footer.github %}
+                    | <a href="https://github.com/{{ config.footer.github }}">GitHub</a>
+                {% endif %}
+                {% if config.footer.linkedin %}
+                    | <a href="https://linkedin.com/in/{{ config.footer.linkedin }}">LinkedIn</a>
+                {% endif %}
+                | <a href="sitemaps.xml">Sitemaps</a>
+
+                {% if config.footer.since %}
+                    | {{ config.footer.since }}
+                {% endif %}
+            </div>
         </div>
     </body>
 </html>
