@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 import os
 import sys
+import time
+import logging
 import shutil
 import json
 import urllib
 import htmlmin
 import frontmatter
 import yaml
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 from markdown2 import markdown
 from jinja2 import Environment, FileSystemLoader
 from rcssmin import cssmin
@@ -209,14 +213,16 @@ def build_site_index(config, theme, toc, build_mode):
 
 
 def get_toc(config, published, unpublished):
-    try:
-        with open(config.toc_path, "r") as toc_file:
-            toc = json.load(toc_file)
-    except FileNotFoundError:
-        toc = {}
+    # try:
+    #     with open(config.toc_path, "r") as toc_file:
+    #         toc = json.load(toc_file)
+    # except FileNotFoundError:
+    #     toc = {}
 
-    for doc in unpublished:
-        toc.pop(doc["input_file_name"], None)
+    toc = {}
+
+    # for doc in unpublished:
+    #     toc.pop(doc["input_file_name"], None)
 
     for doc in published:
         url = os.path.split(doc["output_dir"])[-1] + "/"
@@ -228,8 +234,8 @@ def get_toc(config, published, unpublished):
             "url": url,
         }
 
-    with open(config.toc_path, "w") as toc_file:
-        json.dump(toc, toc_file, indent=4)
+    # with open(config.toc_path, "w") as toc_file:
+    #     json.dump(toc, toc_file, indent=4)
     return toc
 
 
@@ -255,14 +261,14 @@ def build_content(config, docs, theme, build_mode):
     return published, unpublished
 
 
-def build_site(config, build_mode):
+def build_site(config, build_mode, toc=None):
     file_names = find_input_file_names(config)
     io_path_map = get_io_path_map(config, file_names)
 
     if not io_path_map:
         return
 
-    if os.path.exists(config.toc_path):
+    if toc is not None:
         path_map = get_convertible_files(config, io_path_map)
     else:
         path_map = io_path_map
@@ -270,40 +276,75 @@ def build_site(config, build_mode):
     docs, skipped = get_parsed_docs(config, path_map)
     theme = get_theme(config)
     published, unpublished = build_content(config, docs, theme, build_mode)
-    toc = get_toc(config, published, unpublished).values()
+    toc = toc or get_toc(config, published, unpublished).values()
     build_site_index(config, theme, toc, build_mode)
 
     return {
         "published": published,
         "unpublished": unpublished,
         "skipped": skipped,
+        "toc": toc,
     }
 
 
-def watch_and_build(config):
-    pass
+def do_first_build(config, build_mode):
+    report = build_site(config, build_mode)
+
+    if not report:
+        logging.error("Nothing to build at all.")
+        return
+
+    for k in ["published", "unpublished", "skipped"]:
+        count = len(report[k])
+        logging.info("%s: %s", k, count)
+
+
+def watch_and_build(config, build_mode):
+    do_first_build(config, build_mode)
+
+    class EventHandler(FileSystemEventHandler):
+        def on_any_event(self, event):
+            logging.info("Changed %s", os.path.relpath(event.src_path))
+            build_site(config, build_mode)
+
+    event_handler = EventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, config.source_path, recursive=True)
+    observer.schedule(event_handler, config.theme_path, recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
     if len(sys.argv) > 1:
         build_mode = sys.argv[1]
     else:
         build_mode = "production"
 
     if build_mode not in ["development", "production"]:
-        print(f"Invalid build mode {build_mode}")
+        logging.info("Invalid build mode %s", build_mode)
         sys.exit(1)
-    print(f"Starting build in {build_mode}")
 
     config = Config(os.getcwd())
-    report = build_site(config, build_mode)
 
-    if not report:
-        print("Nothing to build...")
-        return
+    if not os.path.exists(config.source_path):
+        logging.error("Source path: '%s' does not exist.", config.source_path)
+        logging.error("Make sure you're inside the right directory.")
+        sys.exit(1)
 
-    for k, v in report.items():
-        print(f"{k}: {len(v)}")
+    logging.info("Starting build in %s", build_mode)
+    watch_and_build(config, build_mode)
 
 
 if __name__ == "__main__":
