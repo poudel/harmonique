@@ -7,7 +7,7 @@ import shutil
 import json
 import urllib
 from functools import partial
-from http.server import SimpleHTTPRequestHandler, test as test_http_server
+from http.server import SimpleHTTPRequestHandler, test as http_server
 
 import htmlmin
 import frontmatter
@@ -28,7 +28,7 @@ class Config:
             "source_path": "source",
             "output_path": "output",
             "theme_path": "theme",
-            "toc_path": "toc.json",
+            "site_url": "http://example.com/",
             "server_port": 8888,
             "server_bind": "127.0.0.1",
             "markdown2_extras": [
@@ -72,38 +72,13 @@ def get_io_path_map(config, input_file_names):
     """
     paths = {}
     for name in input_file_names:
-        input_path = os.path.join(config.source_path, name)
-
         output_md = os.path.join(config.output_path, name)
         output_dir, _ = os.path.splitext(output_md)
         output_path = os.path.join(output_dir, "index.html")
 
+        input_path = os.path.join(config.source_path, name)
         paths[input_path] = output_path
     return paths
-
-
-def get_convertible_files(config, io_path_map):
-    """
-    Return a dict of input:output paths
-    """
-    # if there is no output directory then everything in the source
-    # directory is fresh
-    if not os.path.exists(config.output_path):
-        return io_path_map
-
-    fresh_path_map = {}
-
-    for input_path, output_path in io_path_map.items():
-        if not os.path.exists(output_path):
-            fresh_path_map[input_path] = output_path
-            continue
-
-        source_mtime = os.path.getmtime(input_path)
-        dest_mtime = os.path.getmtime(output_path)
-
-        if source_mtime > dest_mtime:
-            fresh_path_map[input_path] = output_path
-    return fresh_path_map
 
 
 def read_file_content(input_path):
@@ -124,6 +99,9 @@ def parse_file(config, input_path, output_path):
     if not meta:
         return None
 
+    output_dir = os.path.split(output_path)[0]
+    url = os.path.split(output_dir)[-1] + "/"
+    canonical_url = config.site_url + url
     document = {
         # default properties of a document
         "date": None,
@@ -138,7 +116,9 @@ def parse_file(config, input_path, output_path):
         "input_file_name": os.path.split(input_path)[-1],
         "input_path": input_path,
         "output_path": output_path,
-        "output_dir": os.path.split(output_path)[0],
+        "output_dir": output_dir,
+        "url": url,
+        "canonical_url": canonical_url,
     }
     document.update(meta)
     return document
@@ -199,49 +179,10 @@ def get_theme(config):
         "template_path": template_path,
         "detail_template": env.get_template("detail.html"),
         "index_template": env.get_template("index.html"),
+        "sitemaps_template": env.get_template("sitemaps.txt"),
         "css": "\n".join(css_chunks.values()),
         "css_chunks": css_chunks,
     }
-
-
-def build_site_index(config, theme, toc, build_mode):
-    context = {
-        "object_list": toc,
-        "is_index": True,
-        "theme": theme,
-        "config": config,
-        "build_mode": build_mode,
-    }
-    index_path = os.path.join(config.output_path, "index.html")
-    with open(index_path, "w") as fi:
-        fi.write(htmlmin.minify(theme["index_template"].render(context)))
-
-
-def get_toc(config, published, unpublished):
-    # try:
-    #     with open(config.toc_path, "r") as toc_file:
-    #         toc = json.load(toc_file)
-    # except FileNotFoundError:
-    #     toc = {}
-
-    toc = {}
-
-    # for doc in unpublished:
-    #     toc.pop(doc["input_file_name"], None)
-
-    for doc in published:
-        url = os.path.split(doc["output_dir"])[-1] + "/"
-
-        toc[doc["input_file_name"]] = {
-            "title": doc["title"],
-            "date": doc["date"].isoformat(),
-            "draft": doc["draft"],
-            "url": url,
-        }
-
-    # with open(config.toc_path, "w") as toc_file:
-    #     json.dump(toc, toc_file, indent=4)
-    return toc
 
 
 def build_content(config, docs, theme, build_mode):
@@ -257,53 +198,62 @@ def build_content(config, docs, theme, build_mode):
         }
         doc["page"] = htmlmin.minify(theme["detail_template"].render(context))
 
-        if doc["draft"]:
-            unpublish_document(config, doc)
-            unpublished.append(doc)
-        else:
+        if build_mode == "dev" or not doc["draft"]:
             publish_document(config, doc)
             published.append(doc)
+        else:
+            unpublish_document(config, doc)
+            unpublished.append(doc)
     return published, unpublished
 
 
-def build_site(config, build_mode, toc=None):
+def build_site_index(config, theme, docs, build_mode):
+    context = {
+        "object_list": docs,
+        "theme": theme,
+        "config": config,
+        "build_mode": build_mode,
+    }
+    path = os.path.join(config.output_path, "index.html")
+    with open(path, "w") as fi:
+        fi.write(htmlmin.minify(theme["index_template"].render(context)))
+
+
+def build_sitemaps(config, theme, docs):
+    context = {"object_list": docs}
+    path = os.path.join(config.output_path, "sitemaps.xml")
+    with open(path, "w") as fi:
+        fi.write(theme["sitemaps_template"].render(context))
+
+
+def build_site(config, build_mode):
     file_names = find_input_file_names(config)
-    io_path_map = get_io_path_map(config, file_names)
+    path_map = get_io_path_map(config, file_names)
 
-    if not io_path_map:
+    if not path_map:
         return
-
-    if toc is not None:
-        path_map = get_convertible_files(config, io_path_map)
-    else:
-        path_map = io_path_map
 
     docs, skipped = get_parsed_docs(config, path_map)
     theme = get_theme(config)
     published, unpublished = build_content(config, docs, theme, build_mode)
-    toc = toc or get_toc(config, published, unpublished).values()
-    build_site_index(config, theme, toc, build_mode)
+    build_site_index(config, theme, published, build_mode)
+    build_sitemaps(config, theme, published)
 
     return {
         "published": published,
         "unpublished": unpublished,
         "skipped": skipped,
-        "toc": toc,
     }
 
 
 def run_http_server(config):
-    handler_class = partial(
-        SimpleHTTPRequestHandler, directory=config.output_path
-    )
-    test_http_server(
-        HandlerClass=handler_class,
-        port=config.server_port,
-        bind=config.server_bind,
+    handler = partial(SimpleHTTPRequestHandler, directory=config.output_path)
+    http_server(
+        HandlerClass=handler, port=config.server_port, bind=config.server_bind
     )
 
 
-def do_first_build(config, build_mode):
+def just_do_build(config, build_mode):
     report = build_site(config, build_mode)
 
     if not report:
@@ -316,7 +266,7 @@ def do_first_build(config, build_mode):
 
 
 def watch_and_build(config, build_mode):
-    do_first_build(config, build_mode)
+    just_do_build(config, build_mode)
 
     class EventHandler(FileSystemEventHandler):
         def on_any_event(self, event):
@@ -343,9 +293,9 @@ def main():
     if len(sys.argv) > 1:
         build_mode = sys.argv[1]
     else:
-        build_mode = "production"
+        build_mode = "prod"
 
-    if build_mode not in ["development", "production"]:
+    if build_mode not in ["dev", "prod"]:
         logging.info("Invalid build mode %s", build_mode)
         sys.exit(1)
 

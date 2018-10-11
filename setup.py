@@ -20,7 +20,7 @@ setup(
     author="Keshab Paudel",
     author_email="self@keshab.net",
     url="http://github.com/poudel/harmonique",
-    py_modules=["simple_config"],
+    py_modules=["harmonique"],
     entry_points={"console_scripts": ["harmonique=harmonique:main"]},
     install_requires=get_deps(),
     license="MIT",
