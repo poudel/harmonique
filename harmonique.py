@@ -38,6 +38,7 @@ class Config:
                 "metadata",
                 "header-ids",
                 "toc",
+                "footnotes",
             ],
         }
         config_path = os.path.join(working_dir, config_file)
