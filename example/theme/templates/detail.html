@@ -15,6 +15,13 @@
     <div class="content">
         <div class="pd">
             <div class="psub">{{ doc.date }} / {{ doc.location }}</div>
+
+            {% if doc.html.toc_html %}
+                <div class="article-toc">
+                    {{ doc.html.toc_html }}
+                </div>
+            {% endif %}
+
             {{ doc.html }}
         </div>
     </div>

@@ -36,6 +36,8 @@ class Config:
                 "fenced-code-blocks",
                 "target-blank-links",
                 "metadata",
+                "header-ids",
+                "toc",
             ],
         }
         config_path = os.path.join(working_dir, config_file)
@@ -271,7 +273,8 @@ def watch_and_build(config, build_mode):
     class EventHandler(FileSystemEventHandler):
         def on_any_event(self, event):
             logging.info("Changed %s", os.path.relpath(event.src_path))
-            build_site(config, build_mode)
+            if not event.is_directory:
+                build_site(config, build_mode)
 
     event_handler = EventHandler()
     observer = Observer()
