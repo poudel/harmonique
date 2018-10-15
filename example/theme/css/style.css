@@ -28,3 +28,8 @@ a:hover, a:active {color: #06a8e7;}
 .psub {margin-bottom: 5px; font-size: 13px; color: grey;}
 
 p code {background-color: #f6f6f6 !important;}
+
+table {border: solid 1px #efefef; padding: 0px;}
+thead {border-bottom: solid 1px #efefef;}
+th {text-align: left; padding-left: 5px;}
+td {border-top: solid 1px #efefef; padding: 1px 5px 1px 5px; margin: 0px;}

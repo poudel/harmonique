@@ -60,3 +60,21 @@ Slug and anchor can be separated by zero or more spaces. Not tabs.
 
 The patterns and the URL template can be customized through the
 `harmonique.yml` config file.
+
+## Tables
+
+Tables are also very easy. The syntax below will produce a table.
+
+```markdown
+| Head1 | Head2 | Head3 |
+|-------|-------|-------|
+| row1  | row1  | row1  |
+| row2  | row2  | row2  |
+```
+
+The result:
+
+| Head1 | Head2 | Head3 |
+|-------|-------|-------|
+| row1  | row1  | row1  |
+| row2  | row2  | row2  |

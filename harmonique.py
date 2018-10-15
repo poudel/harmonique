@@ -34,7 +34,7 @@ class Config:
             "server_bind": "127.0.0.1",
             # interlink pattern and url template respectively
             "interlink_pattern": r"\[il:(?P<slug>.+)\][ ]*\[(?P<anchor>.+)\]",
-            "interlink_url_template": "<a href='/{slug}/'>{anchor}</a>",
+            "interlink_url_template": "<a href='/{slug}/#{hash}'>{anchor}</a>",
             "markdown2_extras": [
                 "code-friendly",
                 "fenced-code-blocks",
@@ -43,6 +43,8 @@ class Config:
                 "header-ids",
                 "toc",
                 "footnotes",
+                "tables",
+                "cuddled-lists",
             ],
         }
         config_path = os.path.join(working_dir, config_file)
@@ -52,7 +54,7 @@ class Config:
 
         # compile and cache the interlink regex object here
         self.config["interlink_re"] = re.compile(
-            self.config["interlink_pattern"]
+            self.config["interlink_pattern"], re.S
         )
 
     def _join_path(self, key):
@@ -99,9 +101,21 @@ def read_file_content(input_path):
 
 
 def interlink(config, text):
+    """
+    Create interlinks between articles
+    """
+
     def interlink_sub(match):
+        slug, anchor = match.groups()
+        splitted = slug.split("#")
+        if len(splitted) == 1:
+            hsh = ""
+        else:
+            hsh = splitted[-1]
+        slug = splitted[0]
+
         return config.interlink_url_template.format(
-            site_url=config.site_url, **match.groupdict()
+            slug=slug, hash=hsh, anchor=anchor
         )
 
     return config.interlink_re.sub(interlink_sub, text)
