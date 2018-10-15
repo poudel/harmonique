@@ -33,7 +33,7 @@ class Config:
             "server_port": 8888,
             "server_bind": "127.0.0.1",
             # interlink pattern and url template respectively
-            "interlink_pattern": r"\[il:(?P<slug>.+)\][ ]*\[(?P<anchor>.+)\]",
+            "interlink_pattern": r"\[il:(?P<slug>.+)\][ ]{0,3}\[(?P<anchor>.+)\]",
             "interlink_url_template": "<a href='/{slug}/#{hash}'>{anchor}</a>",
             "markdown2_extras": [
                 "code-friendly",
@@ -54,7 +54,7 @@ class Config:
 
         # compile and cache the interlink regex object here
         self.config["interlink_re"] = re.compile(
-            self.config["interlink_pattern"], re.S
+            self.config["interlink_pattern"]
         )
 
     def _join_path(self, key):

@@ -56,7 +56,7 @@ syntax to interlink is as follows:
 [il:<slug>]	[<anchor>]
 ```
 
-Slug and anchor can be separated by zero or more spaces. Not tabs.
+Slug and anchor can be separated using zero to 3 spaces. Not tabs.
 
 The patterns and the URL template can be customized through the
 `harmonique.yml` config file.
