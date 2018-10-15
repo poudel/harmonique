@@ -34,7 +34,7 @@ class Config:
             "server_bind": "127.0.0.1",
             # interlink pattern and url template respectively
             "interlink_pattern": r"\[il:(?P<slug>.+)\][ ]{0,3}\[(?P<anchor>.+)\]",
-            "interlink_url_template": "<a href='/{slug}/#{hash}'>{anchor}</a>",
+            "interlink_url_template": "<a href='{url}'>{anchor}</a>",
             "markdown2_extras": [
                 "code-friendly",
                 "fenced-code-blocks",
@@ -108,15 +108,11 @@ def interlink(config, text):
     def interlink_sub(match):
         slug, anchor = match.groups()
         splitted = slug.split("#")
-        if len(splitted) == 1:
-            hsh = ""
-        else:
-            hsh = splitted[-1]
-        slug = splitted[0]
-
-        return config.interlink_url_template.format(
-            slug=slug, hash=hsh, anchor=anchor
-        )
+        joins = [f"/{slug}/"]
+        if len(splitted) > 1:
+            joins.append(splitted[-1])
+        url = "#".join(joins)
+        return config.interlink_url_template.format(url=url, anchor=anchor)
 
     return config.interlink_re.sub(interlink_sub, text)
 
@@ -327,7 +323,7 @@ def main():
     )
 
     if len(sys.argv) > 1:
-        build_mode = sys.argv[1]
+        build_mode = sys.argv[1].lower()
     else:
         build_mode = "prod"
 
