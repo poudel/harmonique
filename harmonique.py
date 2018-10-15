@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import re
 import logging
 import shutil
 import json
@@ -31,6 +32,9 @@ class Config:
             "site_url": "http://example.com/",
             "server_port": 8888,
             "server_bind": "127.0.0.1",
+            # interlink pattern and url template respectively
+            "interlink_pattern": r"\[il:(?P<slug>.+)\][ ]*\[(?P<anchor>.+)\]",
+            "interlink_url_template": "<a href='/{slug}/'>{anchor}</a>",
             "markdown2_extras": [
                 "code-friendly",
                 "fenced-code-blocks",
@@ -45,6 +49,11 @@ class Config:
         if os.path.exists(config_path):
             with open(config_path, "r") as cfile:
                 self.config.update(yaml.load(cfile))
+
+        # compile and cache the interlink regex object here
+        self.config["interlink_re"] = re.compile(
+            self.config["interlink_pattern"]
+        )
 
     def _join_path(self, key):
         return os.path.join(self.working_dir, self.config[key])
@@ -89,16 +98,25 @@ def read_file_content(input_path):
         return input_file.read()
 
 
+def interlink(config, text):
+    def interlink_sub(match):
+        return config.interlink_url_template.format(
+            site_url=config.site_url, **match.groupdict()
+        )
+
+    return config.interlink_re.sub(interlink_sub, text)
+
+
 def parse_file(config, input_path, output_path):
     """
     Open, read and parse a input markdown file and return
     a dict with the parsed information.
     """
     text = read_file_content(input_path)
+    text = interlink(config, text)
     html = markdown(text, extras=config.markdown2_extras)
 
     meta = dict(frontmatter.loads(text))
-
     if not meta:
         return None
 

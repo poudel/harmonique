@@ -45,3 +45,18 @@ links can be tedious.[^1]
 [^1]: https://wikipedia.org
 [^ref]: This is note id
 ```
+
+## Interlink
+
+Interlinking can be used to create links between articles while
+retaining the readability that is on par with the markdown syntax. The
+syntax to interlink is as follows:
+
+```markdown
+[il:<slug>]	[<anchor>]
+```
+
+Slug and anchor can be separated by zero or more spaces. Not tabs.
+
+The patterns and the URL template can be customized through the
+`harmonique.yml` config file.
