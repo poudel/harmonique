@@ -1,9 +1,13 @@
 -i https://pypi.org/simple
+-e .
+argh==0.26.2
 htmlmin==0.1.12
 jinja2==2.10
 markdown2==2.3.5
 markupsafe==1.0
+pathtools==0.1.2
 python-frontmatter==0.4.2
 pyyaml==4.2b4
 rcssmin==1.0.6
 six==1.11.0
+watchdog==0.9.0

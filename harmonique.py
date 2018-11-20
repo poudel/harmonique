@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import os
 import sys
-import time
 import re
 import logging
 import shutil
-import json
-import urllib
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, test as http_server
 
@@ -322,6 +319,11 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    serve = False
+    if len(sys.argv) > 2:
+        if sys.argv[2].lower() == "serve":
+            serve = True
+
     if len(sys.argv) > 1:
         build_mode = sys.argv[1].lower()
     else:
@@ -339,7 +341,11 @@ def main():
         sys.exit(1)
 
     logging.info("Starting build in %s", build_mode)
-    watch_and_build(config, build_mode)
+
+    if serve:
+        watch_and_build(config, build_mode)
+    else:
+        just_do_build(config, build_mode)
 
 
 if __name__ == "__main__":

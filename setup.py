@@ -9,12 +9,12 @@ with open(os.path.join("README.md"), "r") as f:
 
 def get_deps():
     with open("requirements.txt", "r") as deps:
-        return deps.readlines()[1:]
+        return deps.readlines()[2:]
 
 
 setup(
     name="harmonique",
-    version="0.0.1",
+    version="0.0.2",
     description="a sad little personal static blog generator",
     long_description=long_description,
     author="Keshab Paudel",
