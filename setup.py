@@ -14,7 +14,7 @@ def get_deps():
 
 setup(
     name="harmonique",
-    version="0.0.2",
+    version="0.0.3",
     description="a sad little personal static blog generator",
     long_description=long_description,
     author="Keshab Paudel",

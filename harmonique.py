@@ -93,8 +93,11 @@ def get_io_path_map(config, input_file_names):
 
 
 def read_file_content(input_path):
-    with open(input_path, "r") as input_file:
-        return input_file.read()
+    try:
+        with open(input_path, "r") as input_file:
+            return input_file.read()
+    except FileNotFoundError:
+        pass
 
 
 def interlink(config, text):
@@ -120,6 +123,10 @@ def parse_file(config, input_path, output_path):
     a dict with the parsed information.
     """
     text = read_file_content(input_path)
+
+    if text is None:
+        return None
+
     text = interlink(config, text)
     html = markdown(text, extras=config.markdown2_extras)
 
